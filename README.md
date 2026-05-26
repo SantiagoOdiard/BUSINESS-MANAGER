@@ -1,6 +1,6 @@
-# Advanced Ticket Management System
+# BUSINESS-MANAGER
 
-Enterprise-style ticket management for multi-plant operations. Built with Python, this system delivers role-aware workflows, SLA tracking, audit-ready reporting, attachments, and secure plant-level access control.
+Advanced ticket management system with SLA, automation, role-based access control and audit logging built in Python.
 
 ## Features
 
@@ -20,7 +20,7 @@ Enterprise-style ticket management for multi-plant operations. Built with Python
 
 ## Architecture Overview
 
-This project is designed as a modular Python backend with server-rendered page flows and strong data validation.
+This project is designed as a modular Python backend with server-rendered pages, secure authentication, and strong data validation.
 
 - `main.py` contains the FastAPI routes, authentication flow, business logic, and access validation.
 - `models.py` defines the SQLAlchemy ORM models for users, plants, tickets, messages, tasks, notifications, attachments, and audit logs.
@@ -39,20 +39,12 @@ This project is designed as a modular Python backend with server-rendered page f
 - Itsdangerous session signing
 - Standard Python libraries for security and file handling
 
-## Screenshots
-
-> Screenshots can be added to the `screenshots/` folder and referenced here once available.
-
-- `screenshots/01_login.png`
-- `screenshots/02_dashboard.png`
-- `screenshots/03_ticket_history.png`
-
 ## Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-org/advanced-ticket-management-system.git
-   cd advanced-ticket-management-system
+   git clone https://github.com/SantiagoOdiard/BUSINESS-MANAGER.git
+   cd BUSINESS-MANAGER
    ```
 2. Create and activate a Python virtual environment:
    ```bash
@@ -64,46 +56,30 @@ This project is designed as a modular Python backend with server-rendered page f
    pip install -r requirements.txt
    ```
 4. Configure environment variables:
-   - `DATABASE_URL` (for SQLite or other DB)
+   - `DATABASE_URL`
    - `SECRET_KEY`
    - `BACKUP_ENCRYPTION_KEY`
    - `ADMIN_PASSWORD`
 
-5. Initialize the database and default admin user:
-   ```bash
-   python main.py
-   ```
-   Or ensure the application is started once to create the schema.
-
-## Usage
-
-1. Start the application:
+5. Initialize the database and start the app:
    ```bash
    uvicorn main:app --reload
    ```
-2. Open your browser at:
+
+## Usage
+
+1. Open the browser at:
    ```bash
    http://127.0.0.1:8000/login
    ```
-3. Use the login page to sign in:
-   - Admin user: `admin` / `ADMIN_PASSWORD`
-   - Demo user: access `http://127.0.0.1:8000/login/demo`
-4. Explore the system:
-   - Plant dashboard
-   - Ticket queues and SLA tracking
-   - Ticket detail views and attachments
-   - Automation rules and audit logs
-   - Export CSV and reporting pages
+2. Use the login page to sign in.
+3. Explore tickets, dashboards, automation rules, audit logs, and exports.
 
 ## Future Improvements
 
 - Add dedicated API endpoints for third-party integrations
 - Implement role-specific dashboards for each user profile
-- Add richer analytics and charting widgets
-- Build a React/Vue frontend for a modern SPA experience
-- Add multi-tenant separation for customer accounts
+- Build a modern SPA frontend
 - Add email/SMS notifications for SLA alerts
-
-## Footer
 
 Advanced Ticket Management System is a complete enterprise ticketing platform for plant operations, designed to deliver security, traceability, and productivity across distributed teams.
