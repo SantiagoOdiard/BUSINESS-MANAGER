@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body class="auth-page">
+    <div class="auth-card">
+        <h1>Iniciar sesión</h1>
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        <form action="/login" method="post">
+            <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+            <label>
+                Usuario
+                <input type="text" name="username" placeholder="usuario" required>
+            </label>
+            <label>
+                Contraseña
+                <input type="password" name="password" placeholder="contraseña" required>
+            </label>
+            <label>
+                Código MFA (si está activado)
+                <input type="text" name="mfa_token" placeholder="000000">
+            </label>
+            <button type="submit">Entrar</button>
+        </form>
+        <div class="demo-actions">
+            <a class="button button-secondary demo-button" href="/login/demo">Iniciar sesión Demo</a>
+            <p class="demo-note">Accede al demo con datos de ejemplo y prueba la aplicación sin cuenta.</p>
+        </div>
+    </div>
+</body>
+</html>

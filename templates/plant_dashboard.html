@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ plant.name }} - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+    <style>
+        .plant-dashboard {
+            padding: 20px;
+        }
+        .plant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .plant-header h1 {
+            margin: 0;
+        }
+        .plant-header .actions {
+            display: flex;
+            gap: 10px;
+        }
+        .plant-header button {
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-card.completo {
+            border-left-color: #10b981;
+        }
+        .stat-card.incompleto {
+            border-left-color: #ef4444;
+        }
+        .stat-card.proceso {
+            border-left-color: #f59e0b;
+        }
+        .stat-card.cancelado {
+            border-left-color: #6b7280;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .chart-container h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .export-buttons button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .export-buttons button:hover {
+            background: #5568d3;
+        }
+        .tickets-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .tickets-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .tickets-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .ticket-item {
+            padding: 10px;
+            border-left: 4px solid #ddd;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        .ticket-item.completo {
+            border-left-color: #10b981;
+            background: #ecfdf5;
+        }
+        .ticket-item.incompleto {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        .ticket-item.proceso {
+            border-left-color: #f59e0b;
+            background: #fffbeb;
+        }
+        .ticket-priority {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .ticket-priority.emergencia {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .ticket-priority.alta {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .ticket-priority.media {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        .ticket-priority.baja {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/plants">Plantas</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/profile">Perfil</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+
+    <main class="plant-dashboard">
+        <div class="plant-header">
+            <div>
+                <h1>{{ plant.name }}</h1>
+                <p style="margin: 5px 0 0 0;">📍 {{ plant.location or 'Ubicación no especificada' }}</p>
+            </div>
+            <div class="actions">
+                <button onclick="window.location.href='/plant/{{ plant.id }}/ticket/new'">➕ Nuevo Ticket</button>
+                <button onclick="window.location.href='/plant/{{ plant.id }}/tasks'">🗂️ Ver Tareas</button>
+                <button onclick="window.location.href='/plants'">← Volver</button>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="stats-grid">
+            <div class="stat-card completo">
+                <h3>Tickets Completos</h3>
+                <div class="number">{{ stats.completo }}</div>
+                <p style="margin: 0; color: #10b981; font-size: 12px;">{{ stats.completo_percent }}%</p>
+            </div>
+            <div class="stat-card incompleto">
+                <h3>Tickets Incompletos</h3>
+                <div class="number">{{ stats.incompleto }}</div>
+                <p style="margin: 0; color: #ef4444; font-size: 12px;">{{ stats.incompleto_percent }}%</p>
+            </div>
+            <div class="stat-card proceso">
+                <h3>Tickets Neutros</h3>
+                <div class="number">{{ stats.neutro }}</div>
+                <p style="margin: 0; color: #3b82f6; font-size: 12px;">{{ stats.neutro_percent }}%</p>
+            </div>
+            <div class="stat-card cancelado">
+                <h3>Tickets Cancelados</h3>
+                <div class="number">{{ stats.cancelado }}</div>
+                <p style="margin: 0; color: #6b7280; font-size: 12px;">{{ stats.cancelado_percent }}%</p>
+            </div>
+        </div>
+
+        <!-- Gráfico de barras -->
+        <div class="chart-container">
+            <h2>📊 Estado de Tickets</h2>
+            <div class="chart-wrapper">
+                <canvas id="ticketsChart"></canvas>
+            </div>
+            <div class="export-buttons">
+                <button onclick="exportToExcel()">📥 Abrir Excel de tickets</button>
+                <button onclick="window.location.href='/plant/{{ plant.id }}/tickets/report'">📋 Ver Reporte</button>
+            </div>
+        </div>
+
+        <div class="tickets-grid">
+            <div class="tickets-section">
+                <h3>✅ Tickets Completados</h3>
+                <div id="completedTickets">
+                    {% for ticket in tickets_completo %}
+                    <div class="ticket-item completo">
+                        <strong>#{{ ticket.id }} - {{ ticket.subject }}</strong>
+                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">{{ ticket.created_at.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                    {% endfor %}
+                    {% if not tickets_completo %}
+                    <p style="color: #999; text-align: center;">No hay tickets completados</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="tickets-section">
+                <h3>🔴 Tickets Pendientes</h3>
+                <div id="pendingTickets">
+                    {% for ticket in tickets_incompleto %}
+                    <div class="ticket-item incompleto">
+                        <strong>#{{ ticket.id }} - {{ ticket.subject }}</strong>
+                        {% if ticket.priority == 'emergencia' %}
+                        <div class="ticket-priority emergencia">🚨 EMERGENCIA</div>
+                        {% elif ticket.priority == 'alta' %}
+                        <div class="ticket-priority alta">⚠️ Alta</div>
+                        {% endif %}
+                        <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">{{ ticket.created_at.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                    {% endfor %}
+                    {% if not tickets_incompleto %}
+                    <p style="color: #999; text-align: center;">No hay tickets pendientes</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const ctx = document.getElementById('ticketsChart').getContext('2d');
+        const chartData = {
+            labels: ['Completas', 'Incompletas', 'Neutras', 'Canceladas'],
+            datasets: [{
+                label: 'Porcentaje de Tickets',
+                data: [{{ stats.completo_percent }}, {{ stats.incompleto_percent }}, {{ stats.neutro_percent }}, {{ stats.cancelado_percent }}],
+                backgroundColor: [
+                    '#10b981',
+                    '#ef4444',
+                    '#3b82f6',
+                    '#6b7280'
+                ],
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        };
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        function exportToExcel() {
+            window.location.href = '/plant/{{ plant.id }}/tickets/export';
+        }
+    </script>
+</body>
+</html>

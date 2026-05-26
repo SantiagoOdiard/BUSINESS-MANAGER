@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plantas - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+    <style>
+        .plants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .plant-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 30px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: block;
+        }
+        .plant-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .plant-card h2 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        .plant-card p {
+            margin: 5px 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .plant-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .plant-card .location {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        .plant-card .export-link {
+            display: inline-block;
+            background: rgba(255,255,255,0.18);
+            padding: 10px 14px;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .plant-card .export-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .plants-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .plants-header {
+            text-align: center;
+            padding: 40px 20px 20px;
+        }
+        .plants-header h1 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .plants-header p {
+            color: #666;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/assistant">Asistente IA</a>
+            <a href="/profile">Perfil</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+
+    <main class="plants-container">
+        <div class="plants-header">
+            <h1>Selecciona una Planta</h1>
+            <p>Accede a los tickets y documentos de cada planta</p>
+        </div>
+
+        <div class="plants-grid">
+            {% for plant in plants %}
+            <a href="/plant/{{ plant.id }}" class="plant-card" style="background: linear-gradient(135deg, {{ plant.gradient_start | default('#667eea') }} 0%, {{ plant.gradient_end | default('#764ba2') }} 100%);">
+                <h2>{{ plant.name }}</h2>
+                <p>{{ plant.description or 'Gestiona tickets e incidencias' }}</p>
+                <div class="plant-card-footer">
+                    <span class="location">📍 {{ plant.location or 'Ubicación no especificada' }}</span>
+                    <a href="/plant/{{ plant.id }}/tickets/export" class="export-link">📥 Excel</a>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+
+        {% if not plants %}
+        <div style="text-align: center; padding: 60px 20px; color: #666;">
+            <p>No tienes acceso a ninguna planta aún. Contacta con administración.</p>
+        </div>
+        {% endif %}
+    </main>
+</body>
+</html>

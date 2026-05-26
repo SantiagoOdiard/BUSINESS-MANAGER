@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/assistant">Asistente IA</a>
+            <a href="/support">Soporte</a>
+            <a href="/support/automation-rules">Automatización</a>
+            <a href="/profile">Perfil</a>
+            <a href="/users">Usuarios</a>
+            <a href="/audit">Auditoría</a>
+            <a href="/reports">Informes</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main class="page-grid page-wide">
+        <section class="panel list-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Usuarios</p>
+                    <h1>Gestión de usuarios</h1>
+                </div>
+                <a class="button button-secondary" href="/register">Registrar usuario</a>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuario</th>
+                            <th>Rol</th>
+                            <th>Creado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.role }}</td>
+                            <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

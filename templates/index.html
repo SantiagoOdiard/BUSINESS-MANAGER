@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/assistant">Asistente IA</a>
+            <a href="/support">Soporte</a>
+            <a href="/support/automation-rules">Automatización</a>
+            <a href="/profile">Perfil</a>
+            <a href="/help">Centro de ayuda</a>
+            {% if current_user.role == 'admin' %}
+            <a href="/users">Usuarios</a>
+            <a href="/audit">Auditoría</a>
+            <a href="/reports">Informes</a>
+            <a href="/backup">Backup</a>
+            {% endif %}
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+
+    <main class="page-grid">
+        <section class="panel dashboard-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Visión general</p>
+                    <h1>Dashboard empresarial</h1>
+                </div>
+                <span class="user-chip">{{ current_user.username }} • {{ current_user.role }}</span>
+            </div>
+            <div class="stats-grid">
+                <article class="stat-card">
+                    <span class="stat-title">Tareas totales</span>
+                    <strong>{{ total_tasks }}</strong>
+                </article>
+                <article class="stat-card">
+                    <span class="stat-title">Tickets abiertos</span>
+                    <strong>{{ open_tickets }}</strong>
+                </article>
+                <article class="stat-card">
+                    <span class="stat-title">Tickets urgentes</span>
+                    <strong>{{ urgent_tickets }}</strong>
+                </article>
+                <article class="stat-card">
+                    <span class="stat-title">Empleados</span>
+                    <strong>{{ total_employees }}</strong>
+                </article>
+            </div>
+            <div class="notifications-preview">
+                <article class="card preview-card">
+                    <div class="card-header">
+                        <h2>Notificaciones</h2>
+                        <a href="/notifications">Ver todas</a>
+                    </div>
+                    {% if notifications %}
+                    <ul class="list-clean">
+                        {% for note in notifications[:4] %}
+                        <li class="notification-item {{ 'notification-unread' if not note.read }}">
+                            <strong>{{ note.recipient.username }}</strong>
+                            <p>{{ note.message }}</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="empty-message">No hay notificaciones nuevas.</p>
+                    {% endif %}
+                </article>
+            </div>
+        </section>
+
+        <section class="panel forms-panel">
+            <article class="card form-card">
+                <h2>Crear empleado</h2>
+                {% if available_users %}
+                <form action="/employees" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                    <label>
+                        Usuario
+                        <select name="user_id" required>
+                            {% for user in available_users %}
+                            <option value="{{ user.id }}">{{ user.username }} ({{ user.role }})</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>
+                        Rol del empleado
+                        <input type="text" name="role" placeholder="Ej: Soporte" required>
+                    </label>
+                    <button type="submit">Vincular empleado</button>
+                </form>
+                {% else %}
+                <div class="empty-state">
+                    <p>Crea un usuario primero para convertirlo en empleado.</p>
+                </div>
+                {% endif %}
+            </article>
+
+            <article class="card form-card">
+                <h2>Crear tarea</h2>
+                {% if employees %}
+                <form action="/tasks" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                    <label>
+                        Título
+                        <input type="text" name="title" placeholder="Ej: Actualizar base de datos" required>
+                    </label>
+                    <label>
+                        Descripción
+                        <textarea name="description" placeholder="Describe la tarea"></textarea>
+                    </label>
+                    <div class="form-row">
+                        <label>
+                            Prioridad
+                            <select name="priority" required>
+                                <option value="low">Baja</option>
+                                <option value="medium">Media</option>
+                                <option value="high">Alta</option>
+                            </select>
+                        </label>
+                        <label>
+                            Estado
+                            <select name="status" required>
+                                <option value="pending">Pendiente</option>
+                                <option value="in_progress">En progreso</option>
+                                <option value="completed">Completada</option>
+                            </select>
+                        </label>
+                    </div>
+                    <label>
+                        Asignar a
+                        {% if assignable_employees %}
+                        <select name="assigned_to" required>
+                            {% for emp in assignable_employees %}
+                            <option value="{{ emp.id }}">{{ emp.name }} ({{ emp.role }})</option>
+                            {% endfor %}
+                        </select>
+                        {% else %}
+                        <p class="empty-message">No hay empleados vinculados a usuarios para asignar tareas.</p>
+                        {% endif %}
+                    </label>
+                    <button type="submit">Guardar tarea</button>
+                </form>
+                {% else %}
+                <div class="empty-state">
+                    <p>Agrega al menos un empleado antes de crear tareas.</p>
+                </div>
+                {% endif %}
+            </article>
+        </section>
+
+        <section class="panel previews-panel">
+            <article class="card preview-card">
+                <div class="card-header">
+                    <h2>Últimas tareas</h2>
+                    <a href="/tasks">Ver todo</a>
+                </div>
+                {% if tasks %}
+                <div class="task-cards">
+                    {% for task in tasks[:4] %}
+                    <div class="task-card priority-{{ task.priority }} status-{{ task.status }}">
+                        <div class="task-card-header">
+                            <h3>{{ task.title }}</h3>
+                            <span class="badge badge-status">{{ task.status }}</span>
+                        </div>
+                        <p>{{ task.description or 'Sin descripción' }}</p>
+                        <div class="task-card-footer">
+                            <span>{{ task.employee.name if task.employee else 'Sin asignar' }}{% if task.employee and task.employee.account %} ({{ task.employee.account.username }}){% endif %}</span>
+                            <span class="badge badge-priority">{{ task.priority }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="empty-message">Aún no hay tareas registradas.</p>
+                {% endif %}
+            </article>
+            <article class="card preview-card">
+                <div class="card-header">
+                    <h2>Empleados</h2>
+                    <a href="/employees">Ver todo</a>
+                </div>
+                <ul class="list-clean">
+                    {% if employees %}
+                    {% for emp in employees[:6] %}
+                    <li>
+                        <div>
+                            <strong>{{ emp.name }}</strong>
+                            <span>{{ emp.role }}</span>
+                        </div>
+                        <span class="badge badge-info">Empleado</span>
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <li class="empty-message">No hay empleados en el sistema.</li>
+                    {% endif %}
+                </ul>
+            </article>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar regla de automatización - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/support">Soporte</a>
+            <a href="/support/automation-rules">Reglas</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main class="page-grid page-wide support-grid">
+        <section class="panel form-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Editar regla</p>
+                    <h1>{{ rule.name }}</h1>
+                </div>
+            </div>
+            <form action="/support/automation-rules/{{ rule.id }}/edit" method="post" class="enterprise-form">
+                <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                <label>
+                    Nombre de regla
+                    <input type="text" name="name" value="{{ rule.name }}" required>
+                </label>
+                <label>
+                    Condición
+                    <select name="condition_type">
+                        <option value="subject_contains" {% if rule.condition_type == 'subject_contains' %}selected{% endif %}>Asunto contiene</option>
+                        <option value="description_contains" {% if rule.condition_type == 'description_contains' %}selected{% endif %}>Descripción contiene</option>
+                        <option value="channel_equals" {% if rule.condition_type == 'channel_equals' %}selected{% endif %}>Canal igual</option>
+                        <option value="priority_equals" {% if rule.condition_type == 'priority_equals' %}selected{% endif %}>Prioridad igual</option>
+                        <option value="status_equals" {% if rule.condition_type == 'status_equals' %}selected{% endif %}>Estado igual</option>
+                    </select>
+                </label>
+                <label>
+                    Valor
+                    <input type="text" name="condition_value" value="{{ rule.condition_value }}" required>
+                </label>
+                <label>
+                    Prioridad asignada
+                    <select name="action_set_priority">
+                        <option value="" {% if not rule.action_set_priority %}selected{% endif %}>-- Sin cambio --</option>
+                        <option value="normal" {% if rule.action_set_priority == 'normal' %}selected{% endif %}>Normal</option>
+                        <option value="high" {% if rule.action_set_priority == 'high' %}selected{% endif %}>Alta</option>
+                        <option value="urgent" {% if rule.action_set_priority == 'urgent' %}selected{% endif %}>Urgente</option>
+                    </select>
+                </label>
+                <label>
+                    Estado asignado
+                    <select name="action_set_status">
+                        <option value="" {% if not rule.action_set_status %}selected{% endif %}>-- Sin cambio --</option>
+                        <option value="open" {% if rule.action_set_status == 'open' %}selected{% endif %}>Abierto</option>
+                        <option value="pending" {% if rule.action_set_status == 'pending' %}selected{% endif %}>Pendiente</option>
+                        <option value="in_progress" {% if rule.action_set_status == 'in_progress' %}selected{% endif %}>En progreso</option>
+                        <option value="closed" {% if rule.action_set_status == 'closed' %}selected{% endif %}>Cerrado</option>
+                    </select>
+                </label>
+                <label>
+                    Asignar a empleado ID
+                    <input type="number" name="action_assign_to" value="{{ rule.action_assign_to or '' }}">
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="active" value="true" {% if rule.active %}checked{% endif %}>
+                    Regla activa
+                </label>
+                <div class="form-row">
+                    <button type="submit">Guardar cambios</button>
+                    <a class="button button-secondary" href="/support/automation-rules">Cancelar</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

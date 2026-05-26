@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de cliente - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/assistant">Asistente IA</a>
+            <a href="/support">Soporte</a>
+            <a href="/support/automation-rules">Automatización</a>
+            <a href="/help">Centro de ayuda</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main class="page-grid page-wide support-grid">
+        <section class="panel form-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Perfil empresarial</p>
+                    <h1>Datos del cliente</h1>
+                </div>
+            </div>
+            <p class="panel-description">Actualiza tu compañía, estilo de comunicación y preferencias para que el asistente te atienda con mayor precisión.</p>
+            <form action="/profile" method="post" class="enterprise-form">
+                <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                <label>
+                    Compañía
+                    <input type="text" name="company" value="{{ profile.company or '' }}" placeholder="Nombre de la empresa">
+                </label>
+                <label>
+                    Estilo de comunicación
+                    <select name="communication_style">
+                        <option value="" {% if not profile.communication_style %}selected{% endif %}>Automático</option>
+                        <option value="informal" {% if profile.communication_style == 'informal' %}selected{% endif %}>Informal</option>
+                        <option value="profesional" {% if profile.communication_style == 'profesional' %}selected{% endif %}>Profesional</option>
+                        <option value="elegante" {% if profile.communication_style == 'elegante' %}selected{% endif %}>Elegante</option>
+                    </select>
+                </label>
+                <label>
+                    Preferencias
+                    <textarea name="preferences" placeholder="Describe tus preferencias de atención">{{ profile.preferences or '' }}</textarea>
+                </label>
+                <label>
+                    Notas del cliente
+                    <textarea name="notes" placeholder="Anota información útil para futuras conversaciones">{{ profile.notes or '' }}</textarea>
+                </label>
+                <label>
+                    Código MFA
+                    <input type="text" name="mfa_token" placeholder="000000">
+                </label>
+                <div class="mfa-panel">
+                    <p>MFA: <strong>{{ 'activado' if current_user.mfa_enabled else 'desactivado' }}</strong></p>
+                    <button type="submit" name="mfa_action" value="generate" class="button button-secondary">Generar clave MFA</button>
+                    {% if current_user.mfa_secret and not current_user.mfa_enabled %}
+                    <p class="help-text">Clave MFA provisional: <code>{{ current_user.mfa_secret }}</code></p>
+                    <button type="submit" name="mfa_action" value="verify" class="button button-secondary">Verificar código MFA</button>
+                    {% endif %}
+                    {% if current_user.mfa_enabled %}
+                    <button type="submit" name="mfa_action" value="disable" class="button button-destructive">Desactivar MFA</button>
+                    {% endif %}
+                </div>
+                <button type="submit">Guardar perfil</button>
+            </form>
+        </section>
+        <section class="panel metrics-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Memoria AI</p>
+                    <h1>Últimas interacciones</h1>
+                </div>
+            </div>
+            <div class="status-content">
+                {% if profile.notes %}
+                <pre class="memory-log">{{ profile.notes }}</pre>
+                {% else %}
+                <p class="empty-message">Aún no hay memoria de interacción guardada.</p>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+</body>
+</html>

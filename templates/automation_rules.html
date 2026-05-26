@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reglas de automatización - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/assistant">Asistente IA</a>
+            <a href="/support">Soporte</a>
+            <a href="/support/automation-rules">Automatización</a>
+            <a href="/profile">Perfil</a>
+            <a href="/help">Centro de ayuda</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main class="page-grid page-wide support-grid">
+        <section class="panel form-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Automatización de tickets</p>
+                    <h1>Configura reglas</h1>
+                </div>
+            </div>
+            <p class="panel-description">Crea reglas de automatización para enrutar tickets, ajustar prioridades y mantener el flujo de soporte corporativo.</p>
+            <form action="/support/automation-rules" method="post" class="enterprise-form">
+                <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                <label>
+                    Nombre de regla
+                    <input type="text" name="name" placeholder="Ej: Enviar a finanzas" required>
+                </label>
+                <div class="form-row">
+                    <label>
+                        Condición
+                        <select name="condition_type">
+                            <option value="subject_contains">Asunto contiene</option>
+                            <option value="description_contains">Descripción contiene</option>
+                            <option value="channel_equals">Canal igual</option>
+                            <option value="priority_equals">Prioridad igual</option>
+                            <option value="status_equals">Estado igual</option>
+                        </select>
+                    </label>
+                    <label>
+                        Valor
+                        <input type="text" name="condition_value" placeholder="Ej: reembolso" required>
+                    </label>
+                </div>
+                <div class="form-row">
+                    <label>
+                        Asignar a empleado ID
+                        <input type="number" name="action_assign_to" placeholder="ID del empleado">
+                    </label>
+                    <label>
+                        Prioridad
+                        <select name="action_set_priority">
+                            <option value="">-- Sin cambio --</option>
+                            <option value="normal">Normal</option>
+                            <option value="high">Alta</option>
+                            <option value="urgent">Urgente</option>
+                        </select>
+                    </label>
+                </div>
+                <label>
+                    Establecer estado
+                    <select name="action_set_status">
+                        <option value="">-- Sin cambio --</option>
+                        <option value="open">Abierto</option>
+                        <option value="pending">Pendiente</option>
+                        <option value="in_progress">En progreso</option>
+                        <option value="closed">Cerrado</option>
+                    </select>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="active" value="true" checked>
+                    Regla activa
+                </label>
+                <button type="submit">Guardar regla</button>
+            </form>
+        </section>
+
+        <section class="panel list-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Reglas existentes</p>
+                    <h1>Motor de automatización</h1>
+                </div>
+            </div>
+            {% if rules %}
+            <div class="table-wrapper">
+                <table class="enterprise-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Condición</th>
+                            <th>Acción</th>
+                            <th>Activo</th>
+                            <th>Operaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rule in rules %}
+                        <tr>
+                            <td>{{ rule.id }}</td>
+                            <td>{{ rule.name }}</td>
+                            <td>{{ rule.condition_type.replace('_', ' ') }}: {{ rule.condition_value }}</td>
+                            <td>
+                                {% if rule.action_assign_to %}
+                                    Asignar a {{ rule.action_assign_to }}<br>
+                                {% endif %}
+                                {% if rule.action_set_priority %}
+                                    Prioridad {{ rule.action_set_priority }}<br>
+                                {% endif %}
+                                {% if rule.action_set_status %}
+                                    Estado {{ rule.action_set_status }}
+                                {% endif %}
+                            </td>
+                            <td>{{ 'Sí' if rule.active else 'No' }}</td>
+                            <td>
+                                <a class="button button-small" href="/support/automation-rules/{{ rule.id }}/edit">Editar</a>
+                                <form action="/support/automation-rules/{{ rule.id }}/delete" method="post" style="display:inline-block; margin:0;">
+                                    <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                                    <button type="submit" class="button button-destructive">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="empty-message">No hay reglas de automatización configuradas.</p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar usuario - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/assistant">Asistente IA</a>
+            <a href="/support">Soporte</a>
+            <a href="/support/automation-rules">Automatización</a>
+            <a href="/profile">Perfil</a>
+            <a href="/users">Usuarios</a>
+            <a href="/audit">Auditoría</a>
+            <a href="/reports">Informes</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main class="page-grid page-wide">
+        <section class="panel form-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Administración</p>
+                    <h1>Registrar nuevo usuario</h1>
+                </div>
+            </div>
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+            <form action="/register" method="post">
+                <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                <label>
+                    Nombre de usuario
+                    <input type="text" name="username" placeholder="admin" required>
+                </label>
+                <label>
+                    Contraseña
+                    <input type="password" name="password" placeholder="********" required>
+                </label>
+                <label>
+                    Rol
+                    <select name="role" required>
+                        <option value="admin">Admin</option>
+                        <option value="manager">Manager</option>
+                        <option value="staff">Staff</option>
+                    </select>
+                </label>
+                <button type="submit">Crear usuario</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

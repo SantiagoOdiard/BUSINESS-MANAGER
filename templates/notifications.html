@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificaciones - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/assistant">Asistente IA</a>
+            <a href="/support">Soporte</a>
+            <a href="/support/automation-rules">Automatización</a>
+            <a href="/profile">Perfil</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main class="page-grid page-wide">
+        <section class="panel list-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Notificaciones</p>
+                    <h1>Mensajes del sistema</h1>
+                </div>
+            </div>
+            {% if notifications %}
+            <div class="notifications-list">
+                {% for note in notifications %}
+                <div class="notification-card {{ 'notification-unread' if not note.read }}">
+                    <div class="notification-row">
+                        <strong>{{ note.recipient.username }}</strong>
+                        <span>{{ note.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                    <p>{{ note.message }}</p>
+                    {% if not note.read %}
+                    <form action="/notifications/{{ note.id }}/read" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                        <button class="button button-secondary" type="submit">Marcar como leído</button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty-message">No hay notificaciones nuevas.</p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

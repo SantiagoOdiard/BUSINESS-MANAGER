@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Ticket - {{ plant.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+    <style>
+        .ticket-form-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .form-card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .form-card h1 {
+            margin-top: 0;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        .form-actions button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-submit {
+            background: #667eea;
+            color: white;
+        }
+        .btn-submit:hover {
+            background: #5568d3;
+        }
+        .btn-cancel {
+            background: #e5e7eb;
+            color: #333;
+        }
+        .btn-cancel:hover {
+            background: #d1d5db;
+        }
+        .priority-legend {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+        .priority-legend strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/plants">Plantas</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/profile">Perfil</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+
+    <main class="ticket-form-container">
+        <div class="form-card">
+            <h1>Nuevo Ticket - {{ plant.name }}</h1>
+            
+            <form method="POST" action="/plant/{{ plant.id }}/ticket/new">
+                <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                
+                <div class="form-group">
+                    <label for="subject">Asunto *</label>
+                    <input type="text" id="subject" name="subject" placeholder="Ej: Fallo en máquina X" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Descripción *</label>
+                    <textarea id="description" name="description" placeholder="Describe el problema en detalle..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="priority">Prioridad *</label>
+                    <select id="priority" name="priority" required>
+                        <option value="baja">Baja - Problema menor, puede esperar</option>
+                        <option value="media">Media - Problema moderado</option>
+                        <option value="alta">Alta - Problema importante, requiere atención</option>
+                        <option value="emergencia">Emergencia - Problema crítico, acción inmediata</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="assigned_to">Asignar a Empleado</label>
+                    <select id="assigned_to" name="assigned_to">
+                        <option value="">Sin asignar</option>
+                        {% for employee in employees %}
+                        <option value="{{ employee.id }}">{{ employee.name }} ({{ employee.role }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="priority-legend">
+                    <strong>Guía de prioridades:</strong>
+                    🟢 Baja: Mantenimiento preventivo<br>
+                    🟡 Media: Funciona parcialmente<br>
+                    🔴 Alta: No funciona, afecta producción<br>
+                    🚨 Emergencia: Parada total, pérdida crítica
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">✓ Crear Ticket</button>
+                    <button type="button" class="btn-cancel" onclick="window.location.href='/plant/{{ plant.id }}'">← Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

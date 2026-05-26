@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body class="error-page">
+    <div class="auth-card">
+        <h1>{{ title }}</h1>
+        <p>{{ detail }}</p>
+        <a class="button button-secondary" href="/">Volver al dashboard</a>
+    </div>
+</body>
+</html>

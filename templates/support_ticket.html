@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket #{{ ticket.id }} - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/support">Soporte</a>
+            <a href="/support/automation-rules">Automatización</a>
+            <a href="/assistant">Asistente IA</a>
+            <a href="/profile">Perfil</a>
+            <a href="/help">Centro de ayuda</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main class="page-grid page-wide">
+        <section class="panel list-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Ticket de soporte</p>
+                    <h1>#{{ ticket.id }} - {{ ticket.subject }}</h1>
+                </div>
+                <a class="button button-secondary" href="/support">Volver al listado</a>
+            </div>
+            <div class="ticket-details enterprise-ticket-details">
+                <div class="ticket-summary-card">
+                    <div>
+                        <strong>Canal</strong>
+                        <p>{{ ticket.channel }}</p>
+                    </div>
+                    <div>
+                        <strong>Prioridad</strong>
+                        <p><span class="badge badge-priority badge-{{ ticket.priority }}">{{ ticket.priority | capitalize }}</span></p>
+                    </div>
+                    <div>
+                        <strong>Estado</strong>
+                        <p><span class="badge badge-status badge-{{ ticket.status }}">{{ ticket.status | replace('_', ' ') | capitalize }}</span></p>
+                    </div>
+                    <div>
+                        <strong>Creado por</strong>
+                        <p>{{ ticket.user.username }}</p>
+                    </div>
+                    <div>
+                        <strong>Asignado a</strong>
+                        <p>{{ assignee.name if assignee else 'Sin asignar' }}</p>
+                    </div>
+                    <div>
+                        <strong>Actualizado</strong>
+                        <p>{{ ticket.last_updated.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                    <div>
+                        <strong>Adjuntos</strong>
+                        <p>
+                        {% if ticket.attachments %}
+                            <ul class="attachments-list">
+                            {% for att in ticket.attachments %}
+                                <li><a href="/attachments/{{ att.id }}">{{ att.filename }}</a> <small>({{ att.created_at.strftime('%Y-%m-%d %H:%M') }})</small></li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            Sin adjuntos
+                        {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% set is_assignee = current_user.role == 'staff' and current_user.employee_profile and assignee and current_user.employee_profile.id == assignee.id %}
+                {% if current_user.role in ['admin', 'manager'] or is_assignee %}
+                <div class="quick-actions enterprise-actions">
+                    <h3>Acciones rápidas</h3>
+                    <form action="/support/ticket/{{ ticket.id }}/quick-update" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                        <input type="hidden" name="status" value="in_progress">
+                        <button type="submit" class="button button-secondary">Marcar en progreso</button>
+                    </form>
+                    <form action="/support/ticket/{{ ticket.id }}/quick-update" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                        <input type="hidden" name="status" value="closed">
+                        <button type="submit" class="button button-secondary">Cerrar ticket</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            <div class="message-thread">
+                <h2>Historial de conversaciones</h2>
+                {% if messages %}
+                {% for message in messages %}
+                <article class="card message-card {% if message.sender_type == 'customer' %}customer{% else %}agent{% endif %} {% if message.internal %}internal{% endif %}">
+                    <div class="message-header">
+                        <strong>{{ message.sender_name }}</strong>
+                        <span class="sender-type">{{ 'Cliente' if message.sender_type == 'customer' else 'Agente' }}{% if message.internal %} • Interno{% endif %}</span>
+                        <time>{{ message.created_at.strftime('%d/%m/%Y %H:%M') }}</time>
+                    </div>
+                    <p>{{ message.content }}</p>
+                    {% if ticket.attachments %}
+                        <div class="message-attachments">
+                            <strong>Adjuntos del ticket:</strong>
+                            <ul>
+                            {% for att in ticket.attachments %}
+                                <li><a href="/attachments/{{ att.id }}">{{ att.filename }}</a></li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </article>
+                {% endfor %}
+                {% else %}
+                <p class="empty-message">Aún no hay mensajes en este ticket.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="panel form-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Responder ticket</p>
+                    <h1>Agregar nota</h1>
+                </div>
+            </div>
+            <form action="/support/ticket/{{ ticket.id }}/reply" method="post">
+                <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                <label>
+                    Mensaje
+                    <textarea name="message" placeholder="Escribe tu mensaje" required></textarea>
+                </label>
+                <button type="submit">Enviar respuesta</button>
+            </form>
+
+            <div class="form-divider"></div>
+            <form action="/support/ticket/{{ ticket.id }}/attachments" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                <label>
+                    Adjuntar archivo
+                    <input type="file" name="file" required>
+                </label>
+                <button type="submit">Subir adjunto</button>
+            </form>
+            {% set is_assignee = current_user.role == 'staff' and current_user.employee_profile and assignee and current_user.employee_profile.id == assignee.id %}
+            {% if current_user.role in ['admin', 'manager'] or is_assignee %}
+            <div class="form-divider"></div>
+            <form action="/support/ticket/{{ ticket.id }}/update" method="post">
+                <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                <label>
+                    Estado
+                    <select name="status" required>
+                        <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Abierto</option>
+                        <option value="pending" {% if ticket.status == 'pending' %}selected{% endif %}>Pendiente</option>
+                        <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>En progreso</option>
+                        <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Cerrado</option>
+                    </select>
+                </label>
+                {% if current_user.role in ['admin', 'manager'] %}
+                <label>
+                    Prioridad
+                    <select name="priority" required>
+                        <option value="normal" {% if ticket.priority == 'normal' %}selected{% endif %}>Normal</option>
+                        <option value="high" {% if ticket.priority == 'high' %}selected{% endif %}>Alta</option>
+                        <option value="urgent" {% if ticket.priority == 'urgent' %}selected{% endif %}>Urgente</option>
+                    </select>
+                </label>
+                <label>
+                    SLA vencimiento
+                    <input type="datetime-local" name="sla_due" value="{% if ticket.sla_due %}{{ ticket.sla_due.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+                </label>
+                <label>
+                    Asignar a
+                    <select name="assigned_to">
+                        <option value="">Sin asignar</option>
+                        {% for agent in agents %}
+                        <option value="{{ agent.id }}" {% if assignee and assignee.id == agent.id %}selected{% endif %}>{{ agent.name }} ({{ agent.role }})</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                {% else %}
+                <input type="hidden" name="priority" value="{{ ticket.priority }}">
+                <input type="hidden" name="assigned_to" value="{{ ticket.assigned_to or '' }}">
+                {% endif %}
+                <button type="submit" class="button button-secondary">Actualizar ticket</button>
+            </form>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

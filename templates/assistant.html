@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente IA - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/support">Soporte</a>
+            <a href="/support/automation-rules">Automatización</a>
+            <a href="/profile">Perfil</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main class="page-grid page-wide">
+        <section class="panel form-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Asistente</p>
+                    <h1>Chat de ayuda con IA</h1>
+                </div>
+            </div>
+            <p>Escribe tu pregunta o describe el problema y recibe una ayuda inmediata directamente en la plataforma.</p>
+            <form action="/assistant" method="post">
+                <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                <label>
+                    Tu mensaje
+                    <textarea name="message" placeholder="Necesito ayuda con una tarea asignada..." required>{{ user_message if user_message else '' }}</textarea>
+                </label>
+                <button type="submit">Enviar a la IA</button>
+            </form>
+            {% if assistant_answer %}
+            <div class="assistant-response">
+                <h2>Respuesta del asistente</h2>
+                <p>{{ assistant_answer }}</p>
+            </div>
+            {% endif %}
+            {% if relevant_articles %}
+            <div class="assistant-response">
+                <h3>Artículos relevantes</h3>
+                <ul>
+                    {% for article in relevant_articles %}
+                    <li>{{ article.title }} ({{ article.category }})</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            {% if profile and profile.notes %}
+            <div class="assistant-response">
+                <h3>Registro de memoria</h3>
+                <pre>{{ profile.notes }}</pre>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

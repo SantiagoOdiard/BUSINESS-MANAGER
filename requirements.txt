@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+sqlalchemy
+jinja2==3.0.3
+python-multipart
+passlib[bcrypt]
+itsdangerous
+alembic
+cryptography
+pyotp
+pymysql
+psycopg2-binary
+openpyxl
+requests
+python-dotenv

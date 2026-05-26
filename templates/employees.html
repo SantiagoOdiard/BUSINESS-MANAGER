@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empleados - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/assistant">Asistente IA</a>
+            <a href="/support">Soporte</a>
+            <a href="/support/automation-rules">Automatización</a>
+            <a href="/profile">Perfil</a>
+            {% if current_user.role == 'admin' %}
+            <a href="/users">Usuarios</a>
+            <a href="/audit">Auditoría</a>
+            <a href="/reports">Informes</a>
+            {% endif %}
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main class="page-grid page-wide">
+        <section class="panel list-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Gestión de personal</p>
+                    <h1>Lista de empleados</h1>
+                </div>
+                <a class="button button-secondary" href="/">Volver</a>
+            </div>
+            <ul class="employee-list">
+                {% if employees %}
+                {% for emp in employees %}
+                <li>
+                    <div>
+                        <strong>{{ emp.name }}</strong>
+                        <span>{{ emp.role }}</span>
+                    </div>
+                    <div>
+                        <span class="badge badge-info">Empleado</span>
+                        {% if emp.account %}
+                        <span class="badge badge-secondary">Usuario: {{ emp.account.username }}</span>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+                {% else %}
+                <li class="empty-message">No hay empleados registrados.</li>
+                {% endif %}
+            </ul>
+        </section>
+    </main>
+</body>
+</html>

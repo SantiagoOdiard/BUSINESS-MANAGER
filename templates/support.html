@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soporte - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/assistant">Asistente IA</a>
+            <a href="/support">Soporte</a>
+            <a href="/support/automation-rules">Automatización</a>
+            <a href="/profile">Perfil</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main class="page-grid page-wide support-grid">
+        <section class="panel form-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Centro de soporte empresarial</p>
+                    <h1>Nuevo ticket</h1>
+                </div>
+            </div>
+            <p class="panel-description">Registra rápidamente un incidente o solicitud con todos los datos necesarios para una atención profesional.</p>
+            <form action="/support" method="post" class="enterprise-form">
+                <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                <label>
+                    Asunto
+                    <input type="text" name="subject" placeholder="Ej: Problema con acceso SSO" required>
+                </label>
+                <label>
+                    Descripción
+                    <textarea name="description" placeholder="Describe el problema de forma clara y precisa" required></textarea>
+                </label>
+                <div class="form-row">
+                    <label>
+                        Categoría
+                        <select name="channel">
+                            <option value="web">Portal web</option>
+                            <option value="email">Email</option>
+                            <option value="chat">Chat</option>
+                            <option value="phone">Teléfono</option>
+                        </select>
+                    </label>
+                    <label>
+                        Prioridad
+                        <select name="priority">
+                            <option value="normal">Normal</option>
+                            <option value="high">Alta</option>
+                            <option value="urgent">Urgente</option>
+                        </select>
+                    </label>
+                </div>
+                <button type="submit">Enviar ticket</button>
+            </form>
+            {% if current_user.role in ['admin', 'manager'] %}
+            <div class="form-footer">
+                <a class="button button-secondary" href="/support/import-emails">Importar correos de la bandeja</a>
+                <a class="button button-secondary" href="/support/report">Descargar reporte</a>
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="panel metrics-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Visión general</p>
+                    <h1>Resumen de tickets</h1>
+                </div>
+            </div>
+            <div class="metrics-grid">
+                <article class="metric-card">
+                    <p class="metric-label">Abiertos</p>
+                    <strong class="metric-value">{{ stats.open }}</strong>
+                </article>
+                <article class="metric-card">
+                    <p class="metric-label">Pendientes</p>
+                    <strong class="metric-value">{{ stats.pending }}</strong>
+                </article>
+                <article class="metric-card">
+                    <p class="metric-label">En progreso</p>
+                    <strong class="metric-value">{{ stats.in_progress }}</strong>
+                </article>
+                <article class="metric-card">
+                    <p class="metric-label">Cerrados</p>
+                    <strong class="metric-value">{{ stats.closed }}</strong>
+                </article>
+                <article class="metric-card">
+                    <p class="metric-label">Reglas activas</p>
+                    <strong class="metric-value">{{ stats.automation_rules }}</strong>
+                </article>
+                <article class="metric-card">
+                    <p class="metric-label">Tickets vencidos</p>
+                    <strong class="metric-value">{{ stats.overdue }}</strong>
+                </article>
+            </div>
+        </section>
+
+        {% if imported_messages or import_errors %}
+        <section class="panel status-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Importación de correos</p>
+                    <h1>Resultados de importación</h1>
+                </div>
+            </div>
+            <div class="status-content">
+                {% if imported_messages %}
+                <p class="success-message">Se importaron {{ imported_messages | length }} correos como tickets: {{ imported_messages | join(', ') }}.</p>
+                {% endif %}
+                {% if import_errors %}
+                <div class="error-list">
+                    <p class="error-title">Errores al importar correos:</p>
+                    <ul>
+                        {% for err in import_errors %}
+                        <li>{{ err }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        <section class="panel list-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Tickets registrados</p>
+                    <h1>Lista de incidencias</h1>
+                </div>
+                <form method="get" class="search-form">
+                    <input type="text" name="q" placeholder="Buscar por asunto o descripción" value="{{ request.query_params.get('q', '') }}">
+                    <select name="page_size">
+                        <option value="10" {% if request.query_params.get('page_size')=='10' %}selected{% endif %}>10</option>
+                        <option value="25" {% if request.query_params.get('page_size')=='25' or not request.query_params.get('page_size') %}selected{% endif %}>25</option>
+                        <option value="50" {% if request.query_params.get('page_size')=='50' %}selected{% endif %}>50</option>
+                        <option value="100" {% if request.query_params.get('page_size')=='100' %}selected{% endif %}>100</option>
+                    </select>
+                    <select name="plant">
+                        <option value="">Todas las plantas</option>
+                        {% for p in plants %}
+                        <option value="{{ p.id }}" {% if request.query_params.get('plant') == p.id|string %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="status">
+                        <option value="">Todos los estados</option>
+                        <option value="open" {% if request.query_params.get('status') == 'open' %}selected{% endif %}>Abierto</option>
+                        <option value="pending" {% if request.query_params.get('status') == 'pending' %}selected{% endif %}>Pendiente</option>
+                        <option value="in_progress" {% if request.query_params.get('status') == 'in_progress' %}selected{% endif %}>En progreso</option>
+                        <option value="closed" {% if request.query_params.get('status') == 'closed' %}selected{% endif %}>Cerrado</option>
+                    </select>
+                    <button type="submit">Filtrar</button>
+                    <a class="button button-secondary" href="/support/export_csv?{{ request.url.query }}">Exportar CSV</a>
+                </form>
+            </div>
+            {% if tickets %}
+            <div class="table-wrapper">
+                <table class="enterprise-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Canal</th>
+                            <th>Asunto</th>
+                            <th>Prioridad</th>
+                            <th>Estado</th>
+                            <th>Asignado</th>
+                            <th>Creado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets %}
+                        <tr>
+                            <td><a href="/support/ticket/{{ ticket.id }}">#{{ ticket.id }}</a></td>
+                            <td>{{ ticket.user.username }}</td>
+                            <td>{{ ticket.channel }}</td>
+                            <td>{{ ticket.subject }}</td>
+                            <td><span class="badge badge-priority badge-{{ ticket.priority }}">{{ ticket.priority | capitalize }}</span></td>
+                            <td><span class="badge badge-status badge-{{ ticket.status }}">{{ ticket.status | replace('_', ' ') | capitalize }}</span></td>
+                            <td>{{ ticket.assigned_employee.name if ticket.assigned_employee else 'Sin asignar' }}</td>
+                            <td>
+                                {% if ticket.sla_due and ticket.sla_due < (datetime.utcnow()) and ticket.status != 'closed' %}
+                                    <span class="badge badge-overdue">Vencido</span>
+                                {% endif %}
+                                {{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if total > page_size %}
+            <div class="pagination">
+                {% if page > 1 %}
+                <a href="?{% for k,v in request.query_params.items() if k!='page' %}{{k}}={{v}}&{% endfor %}page={{ page -1 }}">Anterior</a>
+                {% endif %}
+                <span>Página {{ page }} de {{ (total // page_size) + (1 if total % page_size else 0) }}</span>
+                {% if page * page_size < total %}
+                <a href="?{% for k,v in request.query_params.items() if k!='page' %}{{k}}={{v}}&{% endfor %}page={{ page +1 }}">Siguiente</a>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% else %}
+            <p class="empty-message">No hay tickets de soporte registrados.</p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

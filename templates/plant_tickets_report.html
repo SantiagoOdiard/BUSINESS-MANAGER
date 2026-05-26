@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Tickets - {{ plant.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+        <script src="{{ url_for('static', path='notifications.js') }}"></script>
+    <style>
+        .report-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .report-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .report-header h1 {
+            margin: 0;
+        }
+        .report-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .summary-card .label {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .summary-card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+        .tickets-table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .tickets-table thead {
+            background: #667eea;
+            color: white;
+        }
+        .tickets-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border: none;
+        }
+        .tickets-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .tickets-table tbody tr:hover {
+            background: #f9f9f9;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-completo {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-incompleto {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status-proceso {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-abierto {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .priority-emergencia {
+            background: #fecaca;
+            color: #7f1d1d;
+        }
+        .priority-alta {
+            background: #fed7aa;
+            color: #92400e;
+        }
+        .priority-media {
+            background: #bfdbfe;
+            color: #1e3a8a;
+        }
+        .priority-baja {
+            background: #ddd6fe;
+            color: #4c1d95;
+        }
+        .export-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .export-buttons button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .export-buttons button:hover {
+            background: #5568d3;
+        }
+        @media print {
+            .export-buttons, .topbar {
+                display: none;
+            }
+            .report-container {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/plants">Plantas</a>
+            <a href="/plant/{{ plant.id }}">Dashboard</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/profile">Perfil</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+
+    <div class="report-container">
+        <div class="report-header">
+            <div>
+                <h1>📋 Reporte de Tickets</h1>
+                <p style="margin: 10px 0 0 0; opacity: 0.9;">{{ plant.name }} - {{ stats.total }} tickets</p>
+            </div>
+            <div class="export-buttons">
+                <button onclick="exportToExcel()">📥 Descargar Excel</button>
+                <button onclick="window.print()">🖨️ Imprimir</button>
+            </div>
+        </div>
+
+        <!-- Resumen de estadísticas -->
+        <div class="report-summary">
+            <div class="summary-card">
+                <div class="label">Total</div>
+                <div class="value">{{ stats.total }}</div>
+            </div>
+            <div class="summary-card">
+                <div class="label">✅ Completos</div>
+                <div class="value" style="color: #10b981;">{{ stats.completo }}</div>
+                <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">{{ stats.completo_percent }}%</p>
+            </div>
+            <div class="summary-card">
+                <div class="label">🔴 Incompletos</div>
+                <div class="value" style="color: #ef4444;">{{ stats.incompleto }}</div>
+                <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">{{ stats.incompleto_percent }}%</p>
+            </div>
+            <div class="summary-card">
+                <div class="label">⏳ En Proceso</div>
+                <div class="value" style="color: #f59e0b;">{{ stats.proceso }}</div>
+                <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">{{ stats.proceso_percent }}%</p>
+            </div>
+        </div>
+
+        <!-- Tabla de tickets -->
+        <table class="tickets-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Asunto</th>
+                    <th>Estado</th>
+                    <th>Prioridad</th>
+                    <th>Responsable</th>
+                    <th>Fecha Creación</th>
+                    <th>Última Actualización</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr>
+                    <td><strong>#{{ ticket.id }}</strong></td>
+                    <td>{{ ticket.subject }}</td>
+                    <td>
+                        <span class="status-badge status-{{ ticket.status.lower() }}">
+                            {{ ticket.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="priority-badge priority-{{ ticket.priority.lower() }}">
+                            {% if ticket.priority == 'emergencia' %}🚨{% elif ticket.priority == 'alta' %}⚠️{% elif ticket.priority == 'media' %}ℹ️{% else %}✓{% endif %}
+                            {{ ticket.priority }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if ticket.assigned_employee %}
+                            {{ ticket.assigned_employee.name }}
+                        {% else %}
+                            <span style="color: #999;">Sin asignar</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') if ticket.created_at else 'N/A' }}</td>
+                    <td>{{ ticket.last_updated.strftime('%d/%m/%Y %H:%M') if ticket.last_updated else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if not tickets %}
+        <div style="text-align: center; padding: 60px 20px; color: #999;">
+            <p>No hay tickets para mostrar en esta planta.</p>
+        </div>
+        {% endif %}
+
+        <!-- Pie de página -->
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px;">
+            <p>Reporte generado el {{ now.strftime('%d/%m/%Y %H:%M:%S') if now else 'N/A' }}</p>
+            <p>Planta: {{ plant.name }} | Ubicación: {{ plant.location or 'No especificada' }}</p>
+        </div>
+    </div>
+
+    <script>
+        function exportToExcel() {
+            window.location.href = '/plant/{{ plant.id }}/tickets/export';
+        }
+    </script>
+</body>
+</html>

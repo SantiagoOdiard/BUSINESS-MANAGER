@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informes - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/reports">Informes</a>
+            <a href="/support">Soporte</a>
+            <a href="/assistant">Asistente IA</a>
+            <a href="/profile">Perfil</a>
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main class="page-grid page-wide">
+        <section class="panel list-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Gestión de informes</p>
+                    <h1>Historial de reportes generados</h1>
+                </div>
+            </div>
+            {% if reports %}
+            <div class="table-wrapper">
+                <table class="enterprise-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Fecha</th>
+                            <th>Tamaño</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td>{{ report.name }}</td>
+                            <td>{{ report.created_at }}</td>
+                            <td>{{ report.size_kb }} KB</td>
+                            <td><a class="button button-secondary" href="/reports/download?file={{ report.name }}">Descargar</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="empty-message">No hay archivos de informe disponibles.</p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

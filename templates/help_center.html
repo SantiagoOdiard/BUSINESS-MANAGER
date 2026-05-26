@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de ayuda - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/assistant">Asistente IA</a>
+            <a href="/support">Soporte</a>
+            <a href="/support/automation-rules">Automatización</a>
+            <a href="/profile">Perfil</a>
+            <a href="/help">Centro de ayuda</a>
+            {% if current_user.role == 'admin' %}
+            <a href="/users">Usuarios</a>
+            <a href="/audit">Auditoría</a>
+            <a href="/reports">Informes</a>
+            {% endif %}
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main class="page-grid page-wide">
+        <section class="panel list-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Base de conocimiento</p>
+                    <h1>Artículos de ayuda</h1>
+                </div>
+                <form class="search-form" method="get" action="/help">
+                    <input type="text" name="search" placeholder="Buscar artículos" value="{{ search or '' }}">
+                    <button type="submit">Buscar</button>
+                </form>
+                {% if current_user.role in ['admin', 'manager'] %}
+                <a class="button button-secondary" href="#new-article">Crear artículo</a>
+                {% endif %}
+            </div>
+            {% if articles %}
+            <div class="faq-grid">
+                {% for article in articles %}
+                <article class="card faq-card">
+                    <div class="faq-header">
+                        <span class="badge badge-info">{{ article.category }}</span>
+                        <time>{{ article.created_at.strftime('%Y-%m-%d') }}</time>
+                    </div>
+                    <h2>{{ article.title }}</h2>
+                    <p>{{ article.content }}</p>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty-message">No hay artículos disponibles. Los administradores pueden crear contenido aquí.</p>
+            {% endif %}
+        </section>
+
+        {% if current_user.role in ['admin', 'manager'] %}
+        <section id="new-article" class="panel form-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Nuevo artículo</p>
+                    <h1>Crear contenido de autoservicio</h1>
+                </div>
+            </div>
+            <form action="/help" method="post">
+                <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                <label>
+                    Título
+                    <input type="text" name="title" placeholder="Título del artículo" required>
+                </label>
+                <label>
+                    Categoría
+                    <input type="text" name="category" placeholder="Ej: FAQ, Soporte, Guías" required>
+                </label>
+                <label>
+                    Contenido
+                    <textarea name="content" placeholder="Escribe el artículo aquí" required></textarea>
+                </label>
+                <button type="submit">Publicar artículo</button>
+            </form>
+        </section>
+        {% endif %}
+    </main>
+</body>
+</html>

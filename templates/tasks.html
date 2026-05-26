@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tareas - Business Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <script src="{{ url_for('static', path='notifications.js') }}"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand"><span class="brand-highlight">Business</span> Manager</div>
+        <nav>
+            <a href="/">Dashboard</a>
+            <a href="/tasks">Tareas</a>
+            <a href="/employees">Empleados</a>
+            <a href="/notifications">Notificaciones</a>
+            <a href="/assistant">Asistente IA</a>
+            <a href="/support">Soporte</a>
+            <a href="/support/automation-rules">Automatización</a>
+            <a href="/profile">Perfil</a>
+            {% if current_user.role == 'admin' %}
+            <a href="/users">Usuarios</a>
+            <a href="/audit">Auditoría</a>
+            <a href="/reports">Informes</a>
+            {% endif %}
+            <a href="/logout">Cerrar sesión</a>
+        </nav>
+    </header>
+    <main class="page-grid page-wide">
+        <section class="panel list-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">Gestión de tareas</p>
+                    <h1>{{ plant.name if plant else 'Todas las tareas' }}</h1>
+                </div>
+                <a class="button button-secondary" href="{{ '/plant/' ~ plant.id if plant else '/' }}">Volver</a>
+            </div>
+            <div style="margin-left:auto">
+                <a class="button button-secondary" href="/tasks/export_csv">Exportar CSV</a>
+            </div>
+            {% if tasks %}
+            <div class="task-cards task-list">
+                {% for task in tasks %}
+                <div class="task-card priority-{{ task.priority }} status-{{ task.status }}">
+                    <div class="task-card-header">
+                        <h3>{{ task.title }}</h3>
+                        <div>
+                            <span class="badge badge-priority">{{ task.priority }}</span>
+                            <span class="badge badge-status">{{ task.status }}</span>
+                        </div>
+                    </div>
+                    <p>{{ task.description or 'Sin descripción' }}</p>
+                    <div class="task-card-footer">
+                        <span>Asignado a: {{ task.employee.name if task.employee else 'Sin asignar' }}{% if task.employee and task.employee.account %} ({{ task.employee.account.username }}){% endif %}</span>
+                    <span>Planta: {{ task.plant.name if task.plant else 'Sin planta' }}</span>
+                        {% if task.status != 'completed' %}
+                        <form action="/tasks/{{ task.id }}/complete" method="post" class="inline-form">
+                            <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
+                            <button class="button button-primary" type="submit">Marcar completada</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-message">No se encontraron tareas.</div>
+            {% endif %}
+            {% if total and total > page_size %}
+            <div class="pagination">
+                {% if page > 1 %}
+                <a href="?page={{ page -1 }}">Anterior</a>
+                {% endif %}
+                <span>Página {{ page }} de {{ (total // page_size) + (1 if total % page_size else 0) }}</span>
+                {% if page * page_size < total %}
+                <a href="?page={{ page +1 }}">Siguiente</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>
