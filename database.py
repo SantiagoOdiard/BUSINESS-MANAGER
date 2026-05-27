@@ -42,8 +42,19 @@ def get_db():
 
 
 def ensure_schema():
-    Base.metadata.create_all(bind=engine)
-    if DATABASE_URL.startswith("sqlite"):
+    """Create tables if they don't exist - handles connection errors gracefully"""
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"⚠️  Could not create tables: {e}")
+        # Don't crash if schema creation fails, it will be retried on first request
+        return
+    
+    # Only apply schema migrations if using SQLite
+    if not DATABASE_URL.startswith("sqlite"):
+        return
+        
+    try:
         with engine.connect() as connection:
             result = connection.execute(text("PRAGMA table_info(employees)"))
             columns = [row[1] for row in result]
@@ -104,8 +115,9 @@ def ensure_schema():
                 connection.execute(text("ALTER TABLE support_tickets ADD COLUMN last_updated DATETIME"))
             # Ensure attachments table exists for uploaded files
             connection.execute(text("CREATE TABLE IF NOT EXISTS ticket_attachments (id INTEGER PRIMARY KEY, ticket_id INTEGER NOT NULL, filename VARCHAR(1024) NOT NULL, content_type VARCHAR(255), storage_path VARCHAR(2048) NOT NULL, uploaded_by INTEGER, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)"))
-
-
+    except Exception as e:
+        print(f"⚠️  Could not apply schema migrations: {e}")
+        # Continue anyway - tables were created, migrations can be applied later
 
 
 def create_default_admin():
