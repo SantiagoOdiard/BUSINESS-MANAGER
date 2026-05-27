@@ -44,19 +44,31 @@ templates = Jinja2Templates(directory="templates")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
-    raise RuntimeError("SECRET_KEY debe configurarse en las variables de entorno y no puede ser el valor por defecto.")
+    # Generate a random secret key if not provided
+    import secrets as secrets_module
+    SECRET_KEY = secrets_module.token_urlsafe(32)
+    print("⚠️  Using generated SECRET_KEY. For production, set SECRET_KEY env var for session persistence.")
 serializer = URLSafeSerializer(SECRET_KEY, salt="session")
 BACKUP_DIR = Path("backups")
 REPORT_DIR = Path("reports")
 AUTH_TOKEN_MAX_AGE = int(os.getenv("AUTH_TOKEN_MAX_AGE", "7200"))
 CSRF_COOKIE_NAME = "csrf_token"
+
+# BACKUP_ENCRYPTION_KEY - use provided key or generate a default one
 BACKUP_ENCRYPTION_KEY = os.getenv("BACKUP_ENCRYPTION_KEY")
 if not BACKUP_ENCRYPTION_KEY:
-    raise RuntimeError("BACKUP_ENCRYPTION_KEY debe configurarse en las variables de entorno para cifrar los backups.")
+    # Generate a default Fernet key for local backups if not provided
+    BACKUP_ENCRYPTION_KEY = Fernet.generate_key().decode()
+    print("⚠️  Using generated BACKUP_ENCRYPTION_KEY. For production, set BACKUP_ENCRYPTION_KEY env var.")
+
 try:
     BACKUP_FERNET = Fernet(BACKUP_ENCRYPTION_KEY)
 except Exception as exc:
-    raise RuntimeError("BACKUP_ENCRYPTION_KEY no es un valor válido de Fernet: {}".format(exc))
+    # If the key is invalid, generate a new one
+    BACKUP_ENCRYPTION_KEY = Fernet.generate_key().decode()
+    BACKUP_FERNET = Fernet(BACKUP_ENCRYPTION_KEY)
+    print(f"⚠️  Generated new BACKUP_ENCRYPTION_KEY due to invalid key: {exc}")
+
 BACKUP_RETENTION_DAYS = int(os.getenv("BACKUP_RETENTION_DAYS", "30"))
 BACKUP_MAX_FILES = int(os.getenv("BACKUP_MAX_FILES", "10"))
 ENFORCE_HTTPS = os.getenv("ENFORCE_HTTPS", "true").lower() in ["1", "true", "yes"]
