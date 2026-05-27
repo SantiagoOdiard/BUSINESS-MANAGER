@@ -34,7 +34,7 @@ except ImportError as exc:
     pyotp = None
     pyotp_import_error = exc
 
-from database import get_db, pwd_context, engine
+from database import get_db, pwd_context, engine, create_default_admin
 from models import Base, Employee, Task, User, AuditLog, Notification, SupportTicket, SupportTicketMessage, KnowledgeBaseArticle, CustomerProfile, AutomationRule, LoginAttempt, Plant, UserPlantAccess, TicketAttachment
 from plant_utils import send_whatsapp_notification, export_tickets_to_excel, export_tickets_to_excel_multiple_sheets, calculate_ticket_stats, filter_tickets_by_status
 
@@ -139,6 +139,15 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 if ENFORCE_HTTPS:
     app.add_middleware(HTTPSRedirectMiddleware)
 app.add_middleware(SecurityMiddleware)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database and create default admin on startup"""
+    try:
+        create_default_admin()
+    except Exception as e:
+        print(f"⚠️  Startup error: {e}")
 
 
 def create_session_token(user: User) -> str:

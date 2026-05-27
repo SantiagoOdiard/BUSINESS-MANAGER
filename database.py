@@ -4,7 +4,12 @@ from sqlalchemy.orm import sessionmaker
 from passlib.context import CryptContext
 from models import Base, User
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./business_manager.db")
+# Try to use DATABASE_URL if provided, otherwise use SQLite
+_db_url = os.getenv("DATABASE_URL")
+if _db_url and not _db_url.startswith("sqlite"):
+    DATABASE_URL = _db_url
+else:
+    DATABASE_URL = "sqlite:///./business_manager.db"
 
 DEFAULT_ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 if not DEFAULT_ADMIN_PASSWORD:
@@ -14,7 +19,16 @@ connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
-engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
+try:
+    engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
+    # Test connection
+    with engine.connect() as conn:
+        pass
+except Exception as e:
+    print(f"⚠️  Database connection failed: {e}")
+    print("Falling back to SQLite...")
+    DATABASE_URL = "sqlite:///./business_manager.db"
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False}, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto")
@@ -92,21 +106,27 @@ def ensure_schema():
             connection.execute(text("CREATE TABLE IF NOT EXISTS ticket_attachments (id INTEGER PRIMARY KEY, ticket_id INTEGER NOT NULL, filename VARCHAR(1024) NOT NULL, content_type VARCHAR(255), storage_path VARCHAR(2048) NOT NULL, uploaded_by INTEGER, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)"))
 
 
+
+
 def create_default_admin():
-    ensure_schema()
-    db = SessionLocal()
     try:
-        admin = db.query(User).filter(User.username == "admin").first()
-        if not admin:
-            admin = User(
-                username="admin",
-                password_hash=pwd_context.hash(DEFAULT_ADMIN_PASSWORD),
-                role="admin",
-            )
-            db.add(admin)
-            db.commit()
-    finally:
-        db.close()
+        ensure_schema()
+        db = SessionLocal()
+        try:
+            admin = db.query(User).filter(User.username == "admin").first()
+            if not admin:
+                admin = User(
+                    username="admin",
+                    password_hash=pwd_context.hash(DEFAULT_ADMIN_PASSWORD),
+                    role="admin",
+                )
+                db.add(admin)
+                db.commit()
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"⚠️  Could not create default admin: {e}")
+        # Don't crash if admin creation fails, it will be created on first access
 
 
-create_default_admin()
+# Don't call on import, let main.py call it after app is set up
