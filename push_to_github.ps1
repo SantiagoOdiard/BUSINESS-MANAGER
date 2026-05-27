@@ -24,14 +24,15 @@ if (-not (Test-Path .git)) {
 
 if (-not (Test-Path .gitignore)) {
 @"
-venv/
-__pycache__/
-*.pyc
-instance/
 .env
+*.db
+*.log
+__pycache__/
+venv/
 uploads/
-backups/
-*.sqlite3
+ngrok.exe
+ngrok.zip
+.last_ip.txt
 "@ | Out-File -Encoding UTF8 .gitignore
   git add .gitignore
 }

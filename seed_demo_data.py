@@ -36,17 +36,6 @@ EMPLOYEES = [
     {"name": "Diego Ramos", "username": "diego.r", "role": "staff", "password": "Staff2026!3"},
     {"name": "Valentina Cruz", "username": "valentina.c", "role": "staff", "password": "Staff2026!4"},
     {"name": "Pablo Vega", "username": "pablo.v", "role": "staff", "password": "Staff2026!5"},
-    {"name": "Martina Herrera", "username": "martina.h", "role": "staff", "password": "Staff2026!6"},
-    {"name": "Hugo Morales", "username": "hugo.m", "role": "staff", "password": "Staff2026!7"},
-    {"name": "Nadia León", "username": "nadia.l", "role": "staff", "password": "Staff2026!8"},
-    {"name": "Cristian Silva", "username": "cristian.s", "role": "staff", "password": "Staff2026!9"},
-    {"name": "Elena Muñoz", "username": "elena.m", "role": "staff", "password": "Staff2026!10"},
-    {"name": "Rafael Ortega", "username": "rafael.o", "role": "staff", "password": "Staff2026!11"},
-    {"name": "Isabel Navarro", "username": "isabel.n", "role": "staff", "password": "Staff2026!12"},
-    {"name": "Tomás Prieto", "username": "tomas.p", "role": "staff", "password": "Staff2026!13"},
-    {"name": "Gabriela Fuentes", "username": "gabriela.f", "role": "staff", "password": "Staff2026!14"},
-    {"name": "Renato Aguilar", "username": "renato.a", "role": "staff", "password": "Staff2026!15"},
-    {"name": "Mateo Guzmán", "username": "mateo.g", "role": "staff", "password": "Staff2026!16"},
 ]
 
 TICKET_TEMPLATES = [
@@ -271,18 +260,7 @@ def create_employees(db):
         db.add(employee)
         db.flush()
 
-        if index < 5:
-            access_plants = [plant_ids[3]]
-        elif index < 10:
-            access_plants = [plant_ids[2]]
-        elif index < 14:
-            access_plants = [plant_ids[1]]
-        elif index < 18:
-            access_plants = [plant_ids[0]]
-        else:
-            access_plants = plant_ids
-
-        for plant_id in access_plants:
+        for plant_id in plant_ids:
             db.add(UserPlantAccess(user_id=user.id, plant_id=plant_id))
 
         user_employee_map.append({

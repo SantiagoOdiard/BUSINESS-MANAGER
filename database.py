@@ -4,9 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from passlib.context import CryptContext
 from models import Base, User
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL debe configurarse en variables de entorno y apuntar a PostgreSQL, MySQL o SQLite.")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./business_manager.db")
 
 DEFAULT_ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 if not DEFAULT_ADMIN_PASSWORD:
