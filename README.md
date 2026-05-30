@@ -1,85 +1,66 @@
-# BUSINESS-MANAGER
+# BUSINESS MANAGER
 
-Advanced ticket management system with SLA, automation, role-based access control and audit logging built in Python.
+Enterprise Ticketing & Operations Management Platform
 
-## Features
+BUSINESS MANAGER is a full-featured enterprise platform designed to manage tickets, workflows, SLA compliance, user permissions, operational reporting and business process automation across multiple facilities.
 
-- ✅ Multi-plant ticket management
-- ✅ Role-based access control (`Admin`, `Manager`, `Supervisor`, `Staff`)
-- ✅ Ticket assignment and status workflow
-- ✅ SLA deadlines and overdue ticket detection
-- ✅ Ticket conversations, internal notes, and history
-- ✅ File attachments with secure downloads
-- ✅ Notification system with live refresh
-- ✅ CSV export for tickets and task reports
-- ✅ Audit log tracking for user actions
-- ✅ Search, filters, and pagination
-- ✅ Automation rules and routing
-- ✅ Dashboard metrics and operational reporting
-- ✅ User permissions scoped by plant
+Built with Python, FastAPI and SQLAlchemy, the system focuses on scalability, security, traceability and operational efficiency.
 
-## Architecture Overview
+## Key Highlights
 
-This project is designed as a modular Python backend with server-rendered pages, secure authentication, and strong data validation.
+• Multi-tenant business architecture
 
-- `main.py` contains the FastAPI routes, authentication flow, business logic, and access validation.
-- `models.py` defines the SQLAlchemy ORM models for users, plants, tickets, messages, tasks, notifications, attachments, and audit logs.
-- `database.py` initializes the database connection, schema enforcement, and migration helpers.
-- Templates render the UI with Jinja2 and provide a streamlined enterprise experience.
-- Static assets deliver polished layout, forms, buttons, and notification styling.
+• Role-Based Access Control (RBAC)
 
-## Technologies Used
+• SLA monitoring and overdue detection
 
-- Python
-- FastAPI
-- SQLAlchemy
-- Jinja2 templates
-- SQLite / SQL database
-- Passlib password hashing
-- Itsdangerous session signing
-- Standard Python libraries for security and file handling
+• Workflow automation and ticket routing
 
-## Installation
+• Audit logging and full activity traceability
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/SantiagoOdiard/BUSINESS-MANAGER.git
-   cd BUSINESS-MANAGER
-   ```
-2. Create and activate a Python virtual environment:
-   ```bash
-   python -m venv venv
-   .\venv\Scripts\Activate.ps1
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Configure environment variables:
-   - `DATABASE_URL`
-   - `SECRET_KEY`
-   - `BACKUP_ENCRYPTION_KEY`
-   - `ADMIN_PASSWORD`
+• File management and secure attachments
 
-5. Initialize the database and start the app:
-   ```bash
-   uvicorn main:app --reload
-   ```
+• Real-time notifications
 
-## Usage
+• Operational dashboards and reporting
 
-1. Open the browser at:
-   ```bash
-   http://127.0.0.1:8000/login
-   ```
-2. Use the login page to sign in.
-3. Explore tickets, dashboards, automation rules, audit logs, and exports.
+• CSV exports and analytics
 
-## Future Improvements
+## Business Impact
 
-- Add dedicated API endpoints for third-party integrations
-- Implement role-specific dashboards for each user profile
-- Build a modern SPA frontend
+Designed to replace spreadsheets, emails and fragmented workflows by centralizing operational management into a single platform.
+
+Suitable for:
+
+• Manufacturing facilities
+
+• Operations teams
+
+• Service desks
+
+• Internal IT departments
+
+• Maintenance teams
+
+• Multi-site organizations
+
+## Technical Stack
+
+Backend:
+Python • FastAPI • SQLAlchemy
+
+Frontend:
+Jinja2 • HTML • CSS • JavaScript
+
+Database:
+SQLite / SQL
+
+Security:
+Passlib • Session Signing • Access Control
+
+Architecture:
+Modular Enterprise Architecture • RBAC • Audit Logging • Automation Engine
+
 - Add email/SMS notifications for SLA alerts
 
 Advanced Ticket Management System is a complete enterprise ticketing platform for plant operations, designed to deliver security, traceability, and productivity across distributed teams.
